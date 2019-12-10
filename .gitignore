@@ -1,0 +1,24 @@
+# data
+data-cifar10
+data/dataset
+experiment
+*.csv
+*.xlsx
+
+# images
+*.jpeg
+*.jpg
+*.png
+
+# trained model
+*.pth
+*.ckpt
+
+# compressed files
+*.tar
+*.zip
+
+# temporary files
+*.swp
+*.ipynb_checkpoints
+*.pyc
