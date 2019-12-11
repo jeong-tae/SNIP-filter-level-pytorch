@@ -7,7 +7,7 @@ If you have any question or find any issue, please [let me know](../..//issues)!
 
 ## Requirements
 
-
+[ ] Need to check dependencies
 
 ## Usage
 
@@ -32,12 +32,22 @@ compressed_model, comp_rate = snip.construct_small_network(input_x, input_y)
 # Now you can use compressed_model to train
 ```
 
-## Performances
+## Performances on cifar10
 
-To check benchmarks for original network performances, you can see from [here, others' implementation](https://github.com/kuangliu/pytorch-cifar)
+To check benchmarks for more original performances, you can see from [here, others' implementation](https://github.com/kuangliu/pytorch-cifar)
+> The results below are based on batch_size = 1 setting with eval.py code.
 
-[ ] Will update performances soon!
+| Model | comp rate |Accuracy | FPS | # of parameters | memory usage |
+|-------|:---------:|:-------:|:---:|:---------------:|:-------------:|
+| vgg16_bn | 0% | 93.87% |  |  | 1637mb |
+| vgg16_bn | 60% | 93.26% |  |  | 925mb |
 
+Memory usages are measured with `nvidia-smi` command.
+
+
+This accuracy graph with vgg16_bn, comp rate 60% on cifar10:
+
+<img src="samples/snip_cifar10.png" alt="Results with vgg16_bn - compression rate 60%" width="95%"/>
 
 ## Reference
   - [Another pytorch implementation of SNIP](https://github.com/mi-lad/snip)
