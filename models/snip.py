@@ -67,9 +67,10 @@ class SNIP(object):
         
         all_scores = torch.cat(grads_abs) # all flattened
         norm_factor = torch.sum(all_scores)
+        # each filter have different number of parameters. Is it fair?
         all_scores.div_(norm_factor)
 
-        num_filter_to_keep = int(len(all_scores) * self.kappa)
+        num_filter_to_keep = int(len(all_scores) * (1.-self.kappa))
         threshold, _ = torch.topk(all_scores, num_filter_to_keep, sorted=True)
         acceptable_score = threshold[-1]
 
@@ -79,9 +80,15 @@ class SNIP(object):
             keep_filters.append(((g / norm_factor) >= acceptable_score).bool())
 
         # TODO: contruct new network with removed filters
-        
-        prunable_layers = [layer for layer in self.small_net.modules() 
-                if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear)]
+        prunable_layers = []
+        batchnorm_layers = {}
+        prev_layer = None
+        for i, layer in enumerate(self.small_net.modules()):
+            if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+                prunable_layers.append(layer)
+                prev_layer = layer
+            elif isinstance(layer, nn.BatchNorm2d) or isinstance(layer, nn.BatchNorm1d):
+                batchnorm_layers[prev_layer] = layer
 
         prev_keep_filter = None # input channels
         for i, (layer, keep_filter) in enumerate(zip(prunable_layers, keep_filters)):
@@ -91,7 +98,15 @@ class SNIP(object):
                 # TODO: need to check when kappa increase
                 prev_keep_filter = torch.ones(layer.weight.shape[1]).bool()
             assert (layer.weight.shape[0] == keep_filter.shape[0]), "Channel size is not aligned!"
+            # Checked: Kappa increase, some layer totally be zeros. Need to prevent!
 
+            if layer in batchnorm_layers:
+                batchnorm_layers[layer].weight = nn.Parameter(batchnorm_layers[layer].weight[keep_filter])
+                batchnorm_layers[layer].bias = nn.Parameter(batchnorm_layers[layer].bias[keep_filter])
+                batchnorm_layers[layer].running_mean = batchnorm_layers[layer].running_mean[keep_filter]
+                batchnorm_layers[layer].running_var = batchnorm_layers[layer].running_var[keep_filter]
+
+            n_params = layer.weight.numel()
             if isinstance(layer, nn.Conv2d):
                 layer.weight = nn.Parameter(layer.weight[keep_filter, :, :, :]).to(self.device)
                 layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter, :, :]).to(self.device)
@@ -107,6 +122,8 @@ class SNIP(object):
             elif isinstance(layer, nn.Linear)and isinstance(prunable_layers[i-1], nn.Linear):
                 layer.weight = nn.Parameter(layer.weight[keep_filter, :]).to(self.device)
                 layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter]).to(self.device)
+            after_n_params = layer.weight.numel()
+            print("%dth layer compression rate: %.4f"%(i, (after_n_params/n_params)*100))
             
             layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
             prev_keep_filter = keep_filter
