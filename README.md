@@ -3,6 +3,8 @@ Evaluate sensitivity of channel/vector connections to decrease width/depth of ne
 
 This implementation is based on [SNIP paper](https://arxiv.org/abs/1810.02340) and calculate group sensitivity in Linear and Conv2d.
 
+The sparsitiy level, k doesn't mean compression rate anymore in here. Because I sort each connections in group, so meaning slightly changed.
+
 If you have any question or find any issue, please [let me know](../..//issues)!
 
 ## Requirements
@@ -12,8 +14,6 @@ If you have any question or find any issue, please [let me know](../..//issues)!
 ## Usage
 
 Below are some usage examples, to apply your own model. For more details, please read train.py. 
-
-
 ```python
 # This is general case
 import torch
@@ -45,12 +45,12 @@ To check benchmarks for more original performances, you can see from [here, othe
 Memory usages are measured with `nvidia-smi` command.
 
 
-This accuracy graph with vgg16_bn, comp rate 60% on cifar10:
+Accuracy graph with vgg16_bn, comp rate 60% on cifar10 test:
 
 <img src="samples/snip_cifar10.png" alt="Results with vgg16_bn - compression rate 60%" width="95%"/>
 
 ## Reference
   - [Another pytorch implementation of SNIP](https://github.com/mi-lad/snip)
-   - I refered forward overriding and getting mask parts(snip.py), nice implementation!
+    - I refered forward overriding and getting mask parts(snip.py), nice implementation!
   - [Official code, Tensorflow implementation](https://github.com/namhoonlee/snip-public)
   - [SNIP: Single-shot Network Pruning based on Connection Sensitivity (ICLR 2019)](https://arxiv.org/abs/1810.02340)
