@@ -75,7 +75,7 @@ def train_epoch(model, train_loader, optimizer, current_iter, checkpointer, devi
     return current_iter
 
 def main():
-    parser = argparse.ArgumentParser(description = "Training arguments for KD")
+    parser = argparse.ArgumentParser(description = "Training arguments for SNIP")
     parser.add_argument('--lr', default=1e-3, type=float, help="Initial learning rate")
     parser.add_argument('--batch-size', default=128, help="# of dataset you forward at once")
     parser.add_argument('--num-workers', default=4, help="# of worker to queue your dataset")
