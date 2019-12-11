@@ -90,6 +90,8 @@ class SNIP(object):
             elif isinstance(layer, nn.BatchNorm2d) or isinstance(layer, nn.BatchNorm1d):
                 batchnorm_layers[prev_layer] = layer
 
+        n_origin = sum(p.numel() for p in self.small_net.parameters())
+
         prev_keep_filter = None # input channels
         for i, (layer, keep_filter) in enumerate(zip(prunable_layers, keep_filters)):
             if i == 0:
@@ -123,16 +125,15 @@ class SNIP(object):
                 layer.weight = nn.Parameter(layer.weight[keep_filter, :]).to(self.device)
                 layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter]).to(self.device)
             after_n_params = layer.weight.numel()
-            print("%dth layer compression rate: %.4f"%(i, (after_n_params/n_params)*100))
+            print("%dth layer compression rate: %.4f%%"%(i, (1.-(after_n_params/n_params))*100))
             
             layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
             prev_keep_filter = keep_filter
 
-        n_origin = sum(p.numel() for p in self.net.parameters())
         n_small = sum(p.numel() for p in self.small_net.parameters())
 
-        compressed_rate = (n_small / n_origin) * 100
-        print("Compressed rate: %.2f"%compressed_rate)
+        comp_rate = (1. - (n_small / n_origin)) * 100
+        print("Compression rate: %.2f"%comp_rate)
 
-        return self.small_net, compressed_rate
+        return self.small_net, comp_rate
 
