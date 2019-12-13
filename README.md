@@ -40,7 +40,8 @@ To check benchmarks for more original performances, you can see from [here, othe
 | Model | comp rate |Accuracy | FPS | # of parameters | memory usage |
 |-------|:---------:|:-------:|:---:|:---------------:|:-------------:|
 | vgg16_bn | 0% | 93.87% |  |  | 1637mb |
-| vgg16_bn | 60% | 93.26% |  |  | 925mb |
+| vgg16_bn | 69% | 93.26% |  |  | 925mb |
+| vgg16_bn | 88% | 92.81% |  |  | 751mb |
 
 Memory usages are measured with `nvidia-smi` command.
 
