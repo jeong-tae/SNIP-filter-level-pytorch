@@ -36,7 +36,7 @@ def run_eval(args):
 
     fps = 1. / (times/total)
     acc = 100.*correct/total
-    print("Acc: %.4f%%, FPS: %.2f, comp_rate: %.2f"%(acc, fps, ckpt['compressed_rate']))
+    print("Acc: %.4f%%, FPS: %.2f, comp_rate: %.2f"%(acc, fps, ckpt['compression_rate']))
 
 def main():
     parser = argparse.ArgumentParser(description = "Evaluation arguments for SNIP")

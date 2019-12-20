@@ -1,5 +1,5 @@
 # SNIP-pytorch
-Evaluate sensitivity of channel/vector connections to decrease width/depth of network. Which will accelerate inference speed and reduce storage without any other modules or sparse multiplications
+Evaluate sensitivity of channel/vector connections to decrease width/depth of network. Which will accelerate inference speed and reduce storage usage without any other modules or sparse multiplications
 
 This implementation is based on [SNIP paper](https://arxiv.org/abs/1810.02340) and calculate group sensitivity in Linear and Conv2d.
 
@@ -42,6 +42,7 @@ To check benchmarks for more original performances, you can see from [here, othe
 | vgg16_bn | 0% | 93.87% |  |  | 1637mb |
 | vgg16_bn | 69% | 93.26% |  |  | 925mb |
 | vgg16_bn | 88% | 92.81% |  |  | 751mb |
+| resnet50 |     |        |  |  |       |
 
 Memory usages are measured with `nvidia-smi` command.
 

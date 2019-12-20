@@ -1,16 +1,16 @@
-
 import torchvision
 import torch.nn as nn
+from . import resnet
 
 def build_model(model_name, num_classes, pretrained):
     print(" [*] pretrained: %s"%pretrained)
-    if model_name.startswith('resnet'):
-        model = torchvision.models.resnet.__dict__[model_name](num_classes)
-        model = model(pretrained=pretrained)
-        if '101' in model_name or '152' in model_name:
-            model.linear = nn.Linear(512*4, num_classes)
-        else:
-            model.linear = nn.Linear(512, num_classes)
+    if model_name.startswith('resnet'): # no pretrained
+        model = resnet.__dict__[model_name](num_classes)
+        #model = model(pretrained=pretrained)
+        #if '101' in model_name or '152' in model_name:
+        #    model.linear = nn.Linear(512*4, num_classes)
+        #else:
+        #    model.linear = nn.Linear(512, num_classes)
     elif model_name == "alexnet":
         model = torchvision.models.alexnet(pretrained=pretrained)
     elif model_name.startswith('squeezenet'):
