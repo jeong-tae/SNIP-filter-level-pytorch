@@ -17,7 +17,7 @@ Below are some usage examples, to apply your own model. For more details, please
 ```python
 # This is general case
 import torch
-Import SNIP
+import SNIP
 
 device = torch.device(args.device)
 model = build_model(model_name, num_classes, pretrained)
@@ -42,6 +42,7 @@ To check benchmarks for more original performances, you can see from [here, othe
 | vgg16_bn | 0% | 93.87% |  |  | 1637mb |
 | vgg16_bn | 69% | 93.26% |  |  | 925mb |
 | vgg16_bn | 88% | 92.81% |  |  | 751mb |
+| resnet50 | 0%  | 95.11% |  |  | 781mb |
 | resnet50 | 25%  | 95.18% |  |  | 729mb |
 
 Memory usages are measured with `nvidia-smi` command.
