@@ -42,7 +42,7 @@ To check benchmarks for more original performances, you can see from [here, othe
 | vgg16_bn | 0% | 93.87% |  |  | 1637mb |
 | vgg16_bn | 69% | 93.26% |  |  | 925mb |
 | vgg16_bn | 88% | 92.81% |  |  | 751mb |
-| resnet50 |     |        |  |  |       |
+| resnet50 | 25%  | 95.18% |  |  | 729mb |
 
 Memory usages are measured with `nvidia-smi` command.
 
