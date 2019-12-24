@@ -39,6 +39,7 @@ class SNIP(object):
         """
         self.net = net
         self.small_net = copy.deepcopy(net)
+        #self.small_net = copy.copy(net)
         self.device = device
         self.kappa = kappa
         assert kappa <= 1., "kappa value should be range in [0, 1]"
@@ -54,7 +55,7 @@ class SNIP(object):
             if isinstance(layer, nn.Linear):
                 layer.forward = types.MethodType(snip_forward_linear, layer)
 
-    def construct_small_network(self, input_x, input_y, kappa = None):
+    def construct_small_network(self, input_x, input_y, kappa = None, loss = None):
         """
             This function will returns smaller network than you set,
             which is more narrow in linear layerand less depth in conv2d layer
@@ -65,10 +66,13 @@ class SNIP(object):
             self.kappa = kappa
             assert kappa <= 1., "kappa value should be range in [0, 1]"
         # keep in minds that if channel/vector is removed, upper layer should shrink following to lower layer
-        self.net.zero_grad()
-        outputs = self.net.forward(input_x)
-        loss = F.nll_loss(outputs, input_y)
-        loss.backward()
+        if loss is None:
+            self.net.zero_grad()
+            outputs = self.net.forward(input_x)
+            loss = F.nll_loss(outputs, input_y)
+            loss.backward()
+        else:
+            loss.backward()
 
         global all_layers
         all_layers = []
@@ -99,7 +103,11 @@ class SNIP(object):
             keep_filters.append(((g / norm_factor) >= acceptable_score).bool())
 
         # TODO: filter align
-        parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
+        if input_x != None:
+            parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
+        else:
+            input_x = torch.ones((1, 3, 224, 224)).cuda()
+            parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
 
         all_layers = []
         _remove_sequential(self.small_net) # fill_all_layers
@@ -182,10 +190,16 @@ class SNIP(object):
         layer_filter = dict()
 
         idx = 0
+        input_nodes = []
+        # check input nodes to prevent deletion of output node
+        for key, value in parsed_graph.items():
+            input_nodes.extend(value['inputs'])
+        input_nodes = set(input_nodes)
+
         for key, value in parsed_graph.items(): # parsed_graph should ordered dict,
             # key is layer number
             layer_type = value['type']
-            if layer_type == "Conv" or layer_type == "Gemm": # Gemm == Linear?
+            if layer_type == "Conv" or layer_type == "Gemm": # Gemm == Linear
                 current_layer = params_dict[value['weights'][0]]
 
                 if 'input' in value['inputs'][0]:
@@ -198,8 +212,14 @@ class SNIP(object):
                     
                     prev_layer = params_dict[prev_node['weights'][0]]
                     prev_keep_filter = layer_filter[prev_layer][0]
+                
+                if key not in input_nodes:
+                    # keep all connections for output node
+                    keep_filter = torch.ones(current_layer.weight.shape[0]).bool()
+                else:
+                    keep_filter = keep_filters[idx]
+                layer_filter[current_layer] = (keep_filter, prev_keep_filter)
 
-                layer_filter[current_layer] = (keep_filters[idx], prev_keep_filter)
                 idx += 1
             elif layer_type == "BatchNormalization":
                 current_layer = params_dict[value['weights'][0]]
@@ -270,7 +290,6 @@ class SNIP(object):
                         layer_filter[layer] = (layer_filter[layer][0], prev_keep_filter)
             else:
                 pass
-
         return layer_filter
 
     def _graph_parsing(self, net, input_x):
