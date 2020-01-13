@@ -55,7 +55,7 @@ class SNIP(object):
             if isinstance(layer, nn.Linear):
                 layer.forward = types.MethodType(snip_forward_linear, layer)
 
-    def construct_small_network(self, input_x, input_y, kappa = None, loss = None):
+    def construct_small_network(self, input_x, input_y, kappa = None, loss = None, image_size = None):
         """
             This function will returns smaller network than you set,
             which is more narrow in linear layerand less depth in conv2d layer
@@ -106,7 +106,13 @@ class SNIP(object):
         if input_x != None:
             parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
         else:
-            input_x = torch.ones((1, 3, 224, 224)).cuda()
+
+            if isinstance(image_size, int):
+                image_size = (image_size, image_size)
+            elif not (isinstance(image_size, tuple) or isinstance(image_size, list)):
+                raise ValueError("image_size:", image_size)
+
+            input_x = torch.ones((1, 3, image_size[0], image_size[1])).cuda()
             parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
 
         all_layers = []
@@ -212,8 +218,9 @@ class SNIP(object):
                     
                     prev_layer = params_dict[prev_node['weights'][0]]
                     prev_keep_filter = layer_filter[prev_layer][0]
-                
-                if key not in input_nodes:
+
+                if key not in input_nodes or idx >= 23:
+                #if key not in input_nodes:
                     # keep all connections for output node
                     keep_filter = torch.ones(current_layer.weight.shape[0]).bool()
                 else:
@@ -243,13 +250,16 @@ class SNIP(object):
                         if not (node['type'] == 'Conv' or node['type'] == 'Gemm'):
                             _track_all_connections(parsed_graph[node['inputs'][0]])
                     else:
-                        prev_node = parsed_graph[node['inputs'][0]]
-                        if prev_node['type'] == 'Add':
-                            all_branches.append(node['inputs'][0])
-                            _track_all_connections(parsed_graph[prev_node['inputs'][0]])
-                            _track_all_connections(parsed_graph[prev_node['inputs'][1]])
+                        if node['inputs'] == []:
+                            pass
                         else:
-                            _track_all_connections(parsed_graph[prev_node['inputs'][0]])
+                            prev_node = parsed_graph[node['inputs'][0]]
+                            if prev_node['type'] == 'Add':
+                                all_branches.append(node['inputs'][0])
+                                _track_all_connections(parsed_graph[prev_node['inputs'][0]])
+                                _track_all_connections(parsed_graph[prev_node['inputs'][1]])
+                            else:
+                                _track_all_connections(parsed_graph[prev_node['inputs'][0]])
 
                 _track_all_connections(prev_node1)
                 _track_all_connections(prev_node2)
@@ -288,6 +298,20 @@ class SNIP(object):
                         prev_layer = params_dict[prev_node['weights'][0]]
                         prev_keep_filter = layer_filter[prev_layer][0]
                         layer_filter[layer] = (layer_filter[layer][0], prev_keep_filter)
+            elif value['weights'] != []: # custom layer case...?
+                if value['weights'][0] not in parsed_graph:
+                    weight = params_dict[value['weights'][0]]
+
+                    prev_node = parsed_graph[str(int(key)-1)]
+                    while prev_node['weights'] == []:
+                        # it will stop if loop meet conv/linear/batchnorm layer
+                        prev_node = parsed_graph[prev_node['inputs'][0]]
+                    
+                    prev_layer = params_dict[prev_node['weights'][0]]
+                    prev_keep_filter = layer_filter[prev_layer][0]
+                    keep_filter = prev_keep_filter
+                    layer_filter[weight] = (keep_filter, None)
+                    weight = weight[keep_filter]
             else:
                 pass
         return layer_filter
@@ -323,8 +347,11 @@ class SNIP(object):
                         weights.append(node_m[i])
                 else:
                     input_nodes = []
-                    for i in range(1, len(node_m)):
-                        input_nodes.append(node_m[i])
                     weights = []
+                    for i in range(1, len(node_m)):
+                        if node_m[i] in params_dict:
+                            weights.append(node_m[i])
+                        else:
+                            input_nodes.append(node_m[i])
                 parsed_graph[output_node] = {'type': layer_type, 'inputs': input_nodes, 'weights': weights}
         return parsed_graph, params_dict
