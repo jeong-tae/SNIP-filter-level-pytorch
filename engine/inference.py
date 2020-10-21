@@ -33,7 +33,7 @@ def inference(model, data_loader, logger, device, current_epoch, args):
     logger.scalar_summary("val_loss", val_loss.avg, current_epoch)
     classwise_acc.get_average()
     logger.scalar_summary("val_clswise_acc", classwise_acc.top1_avg.mean(), current_epoch)
-    print(" [*] val_acc1: %.4f"%acc1.avg)
+    print(" [*] val_acc1: %.4f at epoch %d"%(acc1.avg, current_epoch))
     return acc1.avg, classwise_acc.top1_avg.mean()
 
 
