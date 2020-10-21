@@ -4,6 +4,7 @@ import numpy as np
 import scipy.misc 
 from io import BytesIO         # Python 3.x
 
+tf.compat.v1.disable_eager_execution()
 class Logger(object):
     
     def __init__(self, log_dir):
@@ -28,7 +29,7 @@ class Logger(object):
             img_sum = tf.compat.v1.Summary.Image(encoded_image_string=s.getvalue(),
                                        height=img.shape[0],
                                        width=img.shape[1])
-            # Create a compat.v1.Summary value
+            # Create a Summary value
             img_summaries.append(tf.compat.v1.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
 
         # Create and write compat.v1.Summary
