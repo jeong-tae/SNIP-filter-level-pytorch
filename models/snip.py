@@ -177,7 +177,14 @@ class SNIP(object):
                     layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
             elif isinstance(layer, nn.Conv2d):
                 layer.weight = nn.Parameter(layer.weight[keep_filter, :, :, :]).to(self.device)
-                layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter, :, :]).to(self.device)
+                if layer.weight.shape[1] == 1:
+                    pass
+                else:
+                    layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter, :, :]).to(self.device)
+                
+                if layer.groups > 1: # for depthwise conv
+                    layer.groups = layer.weight.shape[0]
+
                 if isinstance(layer.bias, torch.Tensor):
                     layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
             elif isinstance(layer, nn.BatchNorm2d) or isinstance(layer, nn.BatchNorm1d):
@@ -219,10 +226,12 @@ class SNIP(object):
                     prev_layer = params_dict[prev_node['weights'][0]]
                     prev_keep_filter = layer_filter[prev_layer][0]
 
-                if key not in input_nodes or idx >= 23:
-                #if key not in input_nodes:
+                #if key not in input_nodes or idx >= 23: # exception
+                if key not in input_nodes:
                     # keep all connections for output node
                     keep_filter = torch.ones(current_layer.weight.shape[0]).bool()
+                elif current_layer.out_channels != current_layer.weight.shape[1] and current_layer.groups > 1: # for depthwise conv
+                    keep_filter = prev_keep_filter
                 else:
                     keep_filter = keep_filters[idx]
                 layer_filter[current_layer] = (keep_filter, prev_keep_filter)
@@ -298,6 +307,11 @@ class SNIP(object):
                         prev_layer = params_dict[prev_node['weights'][0]]
                         prev_keep_filter = layer_filter[prev_layer][0]
                         layer_filter[layer] = (layer_filter[layer][0], prev_keep_filter)
+            elif layer_type == "Concat" and value['weights'] != []: # exception
+                if value['weights'][0] not in parsed_graph:
+                    weight = params_dict[value['weights'][0]]
+                    layer_filter[weight] = (weight.shape[0], None)
+
             elif value['weights'] != []: # custom layer case...?
                 if value['weights'][0] not in parsed_graph:
                     weight = params_dict[value['weights'][0]]
