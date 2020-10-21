@@ -110,7 +110,7 @@ class SNIP(object):
             if isinstance(image_size, int):
                 image_size = (image_size, image_size)
             elif not (isinstance(image_size, tuple) or isinstance(image_size, list)):
-                raise ValueError("image_size:", image_size)
+                raise ValueError("Error in image_size:", image_size)
 
             input_x = torch.ones((1, 3, image_size[0], image_size[1])).cuda()
             parsed_graph, params_dict = self._graph_parsing(self.small_net, input_x)
@@ -167,8 +167,8 @@ class SNIP(object):
                     feature_size = math.sqrt(in_channel / prev_filter_size)
                     assert ((feature_size - int(feature_size)) <= 1e-10), "feature size is not aligned!"
                     weight = layer.weight.view(out_channel, prev_filter_size, int(feature_size), int(feature_size))
-                    layer.weight = nn.Parameter(weight[keep_filter, :, :, :])
-                    layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter, :, :].view(keep_filter.sum(), -1))
+                    layer.weight = nn.Parameter(weight[keep_filter, :, :, :]).to(self.device)
+                    layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter, :, :].view(keep_filter.sum(), -1)).to(self.device)
                 elif isinstance(prev_layer, nn.Linear):
                     layer.weight = nn.Parameter(layer.weight[keep_filter, :]).to(self.device)
                     layer.weight = nn.Parameter(layer.weight[:, prev_keep_filter]).to(self.device)
@@ -181,10 +181,10 @@ class SNIP(object):
                 if isinstance(layer.bias, torch.Tensor):
                     layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
             elif isinstance(layer, nn.BatchNorm2d) or isinstance(layer, nn.BatchNorm1d):
-                layer.weight = nn.Parameter(layer.weight[keep_filter])
-                layer.bias = nn.Parameter(layer.bias[keep_filter])
-                layer.running_mean = layer.running_mean[keep_filter]
-                layer.running_var = layer.running_var[keep_filter]
+                layer.weight = nn.Parameter(layer.weight[keep_filter]).to(self.device)
+                layer.bias = nn.Parameter(layer.bias[keep_filter]).to(self.device)
+                layer.running_mean = layer.running_mean[keep_filter].to(self.device)
+                layer.running_var = layer.running_var[keep_filter].to(self.device)
             else:
                 pass
             after_n_params = layer.weight.numel()
@@ -265,9 +265,9 @@ class SNIP(object):
                 _track_all_connections(prev_node2)
 
                 # need to union all filters into keep_filter
-                keep_filter = layer_filter[params_dict[all_nodes[0]['weights'][0]]][0]
+                keep_filter = layer_filter[params_dict[all_nodes[0]['weights'][0]]][0].cpu()
                 for node in all_nodes:
-                    keep_filter += layer_filter[params_dict[node['weights'][0]]][0]
+                    keep_filter += layer_filter[params_dict[node['weights'][0]]][0].cpu()
 
                 for node in all_nodes:
                     layer = params_dict[node['weights'][0]]
