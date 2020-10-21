@@ -9,7 +9,8 @@ If you have any question or find any issue, please [let me know](../..//issues)!
 
 ## Requirements
 
-[ ] Need to check dependencies
+[ ] Need to check dependencies  
+ * [torchsummary](https://github.com/sksq96/pytorch-summary)
 
 ## Usage
 
@@ -37,18 +38,19 @@ compressed_model, comp_rate = snip.construct_small_network(input_x, input_y)
 To check benchmarks for more original performances, you can see from [here, others' implementation](https://github.com/kuangliu/pytorch-cifar)
 > The results below are based on batch_size = 1 setting with eval.py code.
 
-| Model | comp rate |Accuracy | FPS | # of parameters | memory usage |
-|-------|:---------:|:-------:|:---:|:---------------:|:-------------:|
-| vgg16_bn | 0% | 93.87% |  |  | 1637mb |
-| vgg16_bn | 69% | 93.26% |  |  | 925mb |
-| vgg16_bn | 88% | 92.81% |  |  | 751mb |
-| resnet50 | 0%  | 95.11% |  |  | 781mb |
-| resnet50 | 25%  | 95.18% |  |  | 729mb |
-| mobilenetv2 | 0%  | 93.87% |  |  | 567mb |
-| mobilenetv2 | 45%  | 93.68% |  |  | 543mb |
+| Model | comp rate |Accuracy | FPS | # of parameters | memory usage | param size |
+|-------|:---------:|:-------:|:---:|:---------------:|:-------------:|:------------:
+| vgg16_bn | 0% | 93.87% |  |  | 1637mb |  |
+| vgg16_bn | 69% | 93.26% |  |  | 925mb |  |
+| vgg16_bn | 88% | 92.81% |  |  | 751mb |  |
+| resnet50 | 0%  | 95.11% |  |  | 781mb |  |
+| resnet50 | 25%  | 95.18% |  |  | 729mb |  |
+| mobilenetv2 | 0%  | 93.87% |  |  | 567mb | 8.76mb |
+| mobilenetv2 | 45%  | 93.68% |  |  | 543mb | 4.75mb |
 
 Memory usages are measured with `nvidia-smi` command.  
-Compression rates are computed based on number of parameters from 0% models.
+Compression rates are computed based on number of parameters from 0% models.  
+I got param size using torchsummary. You can see more details related to model size if you eval your model.
 
 
 Accuracy graph with vgg16_bn, comp rate 60% on cifar10 test:

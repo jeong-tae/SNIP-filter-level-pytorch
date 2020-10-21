@@ -2,6 +2,7 @@ import time, argparse
 from tqdm import tqdm
 import torch
 import torch.nn.functional as F
+from torchsummary import summary
 
 from data import CIFAR10_loader
 
@@ -11,6 +12,7 @@ def run_eval(args):
     # load model, you can't use state_dict to load with original network shape.
     ckpt = torch.load(args.model_path)
     model = ckpt['model']
+    summary(model, (3, 32, 32))
     model.eval()
 
     test_loader = CIFAR10_loader(args, is_train = False)
