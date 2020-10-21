@@ -9,8 +9,12 @@ If you have any question or find any issue, please [let me know](../..//issues)!
 
 ## Requirements
 
-[ ] Need to check dependencies  
- * [torchsummary](https://github.com/sksq96/pytorch-summary)
+ * [pytorch 1.5.0](https://pytorch.org/get-started/previous-versions/#v150)
+ * [torchsummary ](https://github.com/sksq96/pytorch-summary)
+ * torchvision 0.6.0
+ * tqdm
+ * tensorflow, this is for tensorboard
+ * scipy 1.4.1
 
 ## Usage
 
