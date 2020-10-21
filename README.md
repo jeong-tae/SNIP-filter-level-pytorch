@@ -45,7 +45,7 @@ To check benchmarks for more original performances, you can see from [here, othe
 | resnet50 | 0%  | 95.11% |  |  | 781mb |
 | resnet50 | 25%  | 95.18% |  |  | 729mb |
 | mobilenetv2 | 0%  | 93.87% |  |  | 567mb |
-| mobilenetv2 | 45%  | 97.68% |  |  | 543mb |
+| mobilenetv2 | 45%  | 93.68% |  |  | 543mb |
 
 Memory usages are measured with `nvidia-smi` command.  
 Compression rates are computed based on number of parameters from 0% models.
