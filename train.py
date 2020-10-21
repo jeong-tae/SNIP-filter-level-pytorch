@@ -84,7 +84,7 @@ def main():
     parser.add_argument('--lr-decaysteps', default=[15, 25], nargs='+', type=int, help="Decay the learning rate at given steps")
     parser.add_argument('--lr-anneal', default=0.1, help="Multiplicative factor of lr decay")
     parser.add_argument('--kappa', default=0.9, type=float, help="Target sparsity level for filters")
-    parser.add_argument('--weight-decay', default=5e-4, help="L2 regularization coefficient")
+    parser.add_argument('--weight-decay', default=5e-4, type=float, help="L2 regularization coefficient")
     parser.add_argument('--scheduler-type', default='multistep', help="")
     parser.add_argument('--model_name', default='resnet101', help="Model name to train")
     parser.add_argument('--device', default='cuda', type=str, help="To enable GPU. set 'cuda', otherwise 'cpu'")
