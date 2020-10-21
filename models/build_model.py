@@ -1,6 +1,6 @@
 import torchvision
 import torch.nn as nn
-from . import resnet
+from . import resnet, mobilenetv2
 
 def build_model(model_name, num_classes, pretrained):
     print(" [*] pretrained: %s"%pretrained)
@@ -25,6 +25,8 @@ def build_model(model_name, num_classes, pretrained):
     elif model_name.startswith('densenet'):
         model = torchvision.models.densenet.__dict__[model_name]
         model = model(num_classes=num_classes, pretrained=pretrained)
+    elif model_name.startswith('mobilenetv2'):
+        model = mobilenetv2.MobileNetV2(num_classes)
     else:
         raise NotImplementedError(" [!] Not implemented model name is given: %s, Please correct the model name or define your model on models directory"%model_name)
 
